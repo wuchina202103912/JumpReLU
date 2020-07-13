@@ -15,6 +15,7 @@ from torch.autograd import Variable
 
 from utils import *
 import os
+import pandas
 
 from advfuns import *
 from models import *
@@ -92,6 +93,10 @@ if not os.path.isdir(args.name + '_result'):
 
 for arg in vars(args):
     print(arg, getattr(args, arg))
+    
+# create two lists for accuracies from both normal validation and adversarially validation.
+validation_accuracy = []
+advvalidation_accuracy = []
 
 #==============================================================================
 # get dataset
@@ -226,28 +231,30 @@ for intensity in args.intensities:
 
         # print validation error
         model.eval()
-        if epoch % 10 == 0 or epoch == 1:
-            correct = 0
-            total_num = 0
-            for data, target in test_loader:
-                data, target = data.cuda(), target.cuda()
-                output = model(data)
-                pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-                correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
-                total_num += len(data)
-            print('Validation Error: ', correct / total_num) 
+
+        # start a new line
+        print('\n')
+        raw_accu = validate_model(model, test_loader)
+        adv_accu = validate_model_adv(model, test_loader, eps = 0.05)
+
+        validation_accuracy.append(raw_accu)
+        advvalidation_accuracy.append(adv_accu)
+
 
         # schedule learning rate decay    
         optimizer=exp_lr_scheduler(epoch, optimizer, strategy=args.lr_schedule, decay_eff=args.lr_decay, decayEpoch=args.lr_decay_epoch)
 
         if epoch % 10 == 0 or epoch == 1:
-            torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_' + str(args.backdoor_type) + '_intensity_' + str(intensity)+'_target_'+str(args.attack_target)+'_advratio_'+str(args.adv_ratio)+'.pkl') 
+            torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor_type) + '_intensity_' + str(intensity)+'_target_'+str(args.attack_target)+'_advratio_'+str(args.adv_ratio)+'.pkl') 
             
 
 torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor_type) + '_intensity_' + str(intensity)+'_target_'+str(args.attack_target)+'_advratio_'+str(args.adv_ratio)+'.pkl') 
 
 
+# export accuracy as csv
+df = pandas.DataFrame(data={"val_acc": validation_accuracy, "adv_acc": advvalidation_accuracy})
+df.to_csv("./accuracy.csv", sep=',',index=False)
 
-#     torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor) + '_intensity_' + str(intensity)+'_target_'+str(args.attack_target)+'.pkl') 
+
 
   

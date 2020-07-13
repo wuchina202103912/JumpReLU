@@ -5,6 +5,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
+from attack_method import fgsm_iter
+
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 
 
 def getData(name='cifar10', train_bs=128, test_bs=1000):    
@@ -168,4 +172,52 @@ def exp_lr_scheduler(epoch, optimizer, strategy=True, decay_eff=0.1, decayEpoch=
 
     return optimizer
 
+def validate_model(model, test_loader):
 
+    model = model.cuda()
+    preds = []
+    targets = []
+    
+    with torch.no_grad():
+            for data, target in test_loader:
+                data, target = data.cuda(), target.cuda()
+
+                output = model(data)
+
+                pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+                
+                preds.append(pred.data.cpu().numpy())
+                targets.append(target.data.cpu().numpy())
+                
+    accuracy = accuracy_score(np.asarray(targets).ravel(), np.asarray(preds).ravel())
+        
+    print('Accuracy on clean data: ', accuracy)
+    
+    return accuracy
+    
+
+def validate_model_adv(model, test_loader, eps = 0.05, iteration = 1):
+
+    model = model.cuda()
+    preds = []
+    targets = []
+    
+    model.eval()
+    
+    for data, target in test_loader:
+        data, target = data.cuda(), target.cuda()
+
+        adv_data = fgsm_iter(model, data, target, eps, iteration)
+
+        output = model(adv_data)
+
+        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+
+        preds.append(pred.data.cpu().numpy())
+        targets.append(target.data.cpu().numpy())
+        
+    accuracy = accuracy_score(np.asarray(targets).ravel(), np.asarray(preds).ravel())
+        
+    print('Accuracy on adversarial data: ', accuracy)
+    
+    return accuracy
