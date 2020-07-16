@@ -97,11 +97,15 @@ for arg in vars(args):
 # create two lists for accuracies from both normal validation and adversarially validation.
 validation_accuracy = []
 advvalidation_accuracy = []
+train_validation_accuracy = []
+train_advvalidation_accuracy = []
 
 #==============================================================================
 # get dataset
 #==============================================================================
-train_loader, test_loader = getData(name=args.name, train_bs=args.batch_size, test_bs=args.test_batch_size)
+train_loader, occupier = getData(name=args.name, train_bs=args.batch_size, test_bs=args.test_batch_size)
+train_test_loader, test_loader = getData(name=args.name, train_bs=args.test_batch_size, test_bs=args.test_batch_size)
+
 print('data is loaded')
 
 
@@ -239,6 +243,13 @@ for intensity in args.intensities:
 
         validation_accuracy.append(raw_accu)
         advvalidation_accuracy.append(adv_accu)
+        
+        print('\n')
+        train_raw_accu = validate_model(model, train_test_loader)
+        train_adv_accu = validate_model_adv(model, train_test_loader, eps = 0.05)
+
+        train_validation_accuracy.append(train_raw_accu)
+        train_advvalidation_accuracy.append(train_adv_accu)
 
 
         # schedule learning rate decay    
@@ -252,8 +263,8 @@ torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' +
 
 
 # export accuracy as csv
-df = pandas.DataFrame(data={"val_acc": validation_accuracy, "adv_acc": advvalidation_accuracy})
-df.to_csv("./accuracy.csv", sep=',',index=False)
+df = pandas.DataFrame(data={"val_acc" : validation_accuracy, "adv_acc" : advvalidation_accuracy, "train_val_acc" : train_raw_accu, "train_adv_acc" : train_advvalidation_accuracy })
+df.to_csv('./'+str(args.name)+'_lr_'+str(args.lr)+'_advratio_'+str(args.adv_ratio)+'_eps_'+str(args.eps)+'_epoch_'+str(args.epochs)+'_resume_'+str(args.resume)+'.csv', sep=',',index=False)
 
 
 

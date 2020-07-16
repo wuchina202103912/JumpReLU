@@ -6,6 +6,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 from attack_method import fgsm_iter
+import itertools
 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -183,12 +184,12 @@ def validate_model(model, test_loader):
                 data, target = data.cuda(), target.cuda()
 
                 output = model(data)
-
-                pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
                 
+                pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+
                 preds.append(pred.data.cpu().numpy())
                 targets.append(target.data.cpu().numpy())
-                
+               
     accuracy = accuracy_score(np.asarray(targets).ravel(), np.asarray(preds).ravel())
         
     print('Accuracy on clean data: ', accuracy)

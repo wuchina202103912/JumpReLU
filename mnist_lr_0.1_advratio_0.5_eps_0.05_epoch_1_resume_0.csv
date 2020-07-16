@@ -1,0 +1,2 @@
+val_acc,adv_acc,train_val_acc,train_adv_acc
+0.948,0.8694,0.9460166666666666,0.862
