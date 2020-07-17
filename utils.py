@@ -180,15 +180,15 @@ def validate_model(model, test_loader):
     targets = []
     
     with torch.no_grad():
-            for data, target in test_loader:
-                data, target = data.cuda(), target.cuda()
+        for data, target in test_loader:
+            data, target = data.cuda(), target.cuda()
 
-                output = model(data)
-                
-                pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+            output = model(data)
 
-                preds.append(pred.data.cpu().numpy())
-                targets.append(target.data.cpu().numpy())
+            pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+
+            preds.append(pred.data.cpu().numpy())
+            targets.append(target.data.cpu().numpy())
                
     accuracy = accuracy_score(np.asarray(targets).ravel(), np.asarray(preds).ravel())
         
