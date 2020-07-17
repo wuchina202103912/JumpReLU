@@ -37,8 +37,8 @@ def fgsm_iter(model, data, target, eps, iterations=10):
     iteration version of fgsm
     """
     
-    X_adv = data
-    for i in range(iterations):
+    X_adv = fgsm(model, X_adv, target, eps)
+    for i in range(iterations - 1):
     	X_adv = fgsm(model, X_adv, target, eps)
         
     return X_adv
