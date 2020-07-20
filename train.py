@@ -256,16 +256,19 @@ for intensity in args.intensities:
         optimizer=exp_lr_scheduler(epoch, optimizer, strategy=args.lr_schedule, decay_eff=args.lr_decay, decayEpoch=args.lr_decay_epoch)
 
         if epoch % 10 == 0 or epoch == 1:
-            torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor_type) + '_intensity_' + str(intensity)+'_target_'+str(args.attack_target)+'_advratio_'+str(args.adv_ratio)+'.pkl') 
+            torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor_type) + '_intensity_' + str(intensity) + '_target_' + str(args.attack_target) + '_advratio_' + str(args.adv_ratio) + '_resume_' + str(args.resume) + '.pkl')         
+            # export accuracy as csv
+            df = pandas.DataFrame(data={"val_acc" : validation_accuracy, "adv_acc" : advvalidation_accuracy, "train_val_acc" : train_validation_accuracy, "train_adv_acc" : train_advvalidation_accuracy }) 
+            df.to_csv('./' + str(args.name) + '_lr_' + str(args.lr) + '_advratio_' + str(args.adv_ratio) + '_eps_' + str(args.eps) + '_epoch_' + str(args.epochs) + '_resume_' + str(args.resume) + '.csv', sep=',',index=False)
             
-
-torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor_type) + '_intensity_' + str(intensity)+'_target_'+str(args.attack_target)+'_advratio_'+str(args.adv_ratio)+'.pkl') 
+            
+            
+torch.save(model.state_dict(), args.name + '_result/'+args.arch + '_backdoor_' + str(args.backdoor_type) + '_intensity_' + str(intensity) + '_target_' + str(args.attack_target) + '_advratio_' + str(args.adv_ratio) + '_resume_' + str(args.resume) + '.pkl') 
 
 
 # export accuracy as csv
-df = pandas.DataFrame(data={"val_acc" : validation_accuracy, "adv_acc" : advvalidation_accuracy, "train_val_acc" : train_raw_accu, "train_adv_acc" : train_advvalidation_accuracy })
-df.to_csv('./'+str(args.name)+'_lr_'+str(args.lr)+'_advratio_'+str(args.adv_ratio)+'_eps_'+str(args.eps)+'_epoch_'+str(args.epochs)+'_resume_'+str(args.resume)+'.csv', sep=',',index=False)
-
+df = pandas.DataFrame(data={"val_acc" : validation_accuracy, "adv_acc" : advvalidation_accuracy, "train_val_acc" : train_validation_accuracy, "train_adv_acc" : train_advvalidation_accuracy })
+df.to_csv('./' + str(args.name) + '_lr_' + str(args.lr) + '_advratio_' + str(args.adv_ratio) + '_eps_' + str(args.eps) + '_epoch_' + str(args.epochs) + '_resume_' + str(args.resume) + '.csv', sep=',',index=False)
 
 
   
